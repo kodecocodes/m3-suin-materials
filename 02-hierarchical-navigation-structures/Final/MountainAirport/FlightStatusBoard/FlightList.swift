@@ -1,4 +1,4 @@
-/// Copyright (c) 2023 Kodeco Inc.
+/// Copyright (c) 2024 Kodeco Inc.
 ///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
@@ -32,46 +32,39 @@
 
 import SwiftUI
 
-struct FlightDetails: View {
-  var flight: FlightInformation
-  @EnvironmentObject var lastFlightInfo: FlightNavigationInfo
+struct FlightList: View {
+  var flights: [FlightInformation]
+  @State private var hidePast = false
+  @Binding var selectedFlight: Int?
+
+  var shownFlights: [FlightInformation] {
+    hidePast ?
+    flights.filter { $0.localTime >= Date() } :
+    flights
+  }
 
   var body: some View {
-    ZStack {
-      Image("background-view")
-        .resizable()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      VStack(alignment: .leading) {
-        HStack {
-          FlightDirectionGraphic(direction: flight.direction)
-            .frame(width: 40, height: 40)
-          VStack(alignment: .leading) {
-            Text("\(flight.dirString) \(flight.otherAirport)")
-            Text(flight.flightStatus)
-              .font(.subheadline)
-          }.font(.title2)
-        }
-        Spacer()
+    NavigationStack {
+      List(shownFlights, selection: $selectedFlight) { flight in
+        Text(flight.statusBoardName)
       }
-      .foregroundColor(.white)
-      .padding()
-      .navigationTitle(flight.statusBoardName)
-      .navigationBarTitleDisplayMode(.inline)
-    }
-    .onAppear {
-      lastFlightInfo.lastFlightId = flight.id
-    }
-    .onChange(of: flight.id) { _, newValue in
-      lastFlightInfo.lastFlightId = newValue
+      .listStyle(.plain)
+      .navigationTitle("Flight List")
+      .navigationBarItems(
+        trailing: Button(
+          hidePast ? "Show Past" : "Hide Past",
+          action: {
+            hidePast.toggle()
+          })
+      )
     }
   }
 }
 
 #Preview {
-  NavigationStack {
-    FlightDetails(
-      flight: FlightData.generateTestFlight(date: Date())
-    )
-  }
+  FlightList(
+    flights: FlightData.generateTestFlights(date: Date()),
+    selectedFlight: .constant(1)
+  )
   .environmentObject(FlightNavigationInfo())
 }

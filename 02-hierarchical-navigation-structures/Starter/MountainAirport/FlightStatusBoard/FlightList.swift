@@ -1,15 +1,15 @@
-/// Copyright (c) 2023 Kodeco Inc.
-///
+/// Copyright (c) 2024 Kodeco Inc.
+/// 
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
 /// in the Software without restriction, including without limitation the rights
 /// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 /// copies of the Software, and to permit persons to whom the Software is
 /// furnished to do so, subject to the following conditions:
-///
+/// 
 /// The above copyright notice and this permission notice shall be included in
 /// all copies or substantial portions of the Software.
-///
+/// 
 /// Notwithstanding the foregoing, you may not use, copy, modify, merge, publish,
 /// distribute, sublicense, create a derivative work, and/or sell copies of the
 /// Software in any work that is designed, intended, or marketed for pedagogical or
@@ -17,11 +17,7 @@
 /// or information technology.  Permission for such use, copying, modification,
 /// merger, publication, distribution, sublicensing, creation of derivative works,
 /// or sale is expressly withheld.
-///
-/// This project and source code may use libraries or frameworks that are
-/// released under various Open-Source licenses. Use of those libraries and
-/// frameworks are governed by their own individual licenses.
-///
+/// 
 /// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 /// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 /// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,46 +28,38 @@
 
 import SwiftUI
 
-struct FlightDetails: View {
-  var flight: FlightInformation
-  @EnvironmentObject var lastFlightInfo: FlightNavigationInfo
+struct FlightList: View {
+  var flights: [FlightInformation]
+  @State private var hidePast = false
+  @Binding var selectedFlight: Int?
+
+  var shownFlights: [FlightInformation] {
+    hidePast ?
+    flights.filter { $0.localTime >= Date() } :
+    flights
+  }
 
   var body: some View {
-    ZStack {
-      Image("background-view")
-        .resizable()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      VStack(alignment: .leading) {
-        HStack {
-          FlightDirectionGraphic(direction: flight.direction)
-            .frame(width: 40, height: 40)
-          VStack(alignment: .leading) {
-            Text("\(flight.dirString) \(flight.otherAirport)")
-            Text(flight.flightStatus)
-              .font(.subheadline)
-          }.font(.title2)
-        }
-        Spacer()
+    NavigationStack {
+      List(shownFlights, selection: $selectedFlight) { flight in
+        Text(flight.statusBoardName)
       }
-      .foregroundColor(.white)
-      .padding()
-      .navigationTitle(flight.statusBoardName)
-      .navigationBarTitleDisplayMode(.inline)
-    }
-    .onAppear {
-      lastFlightInfo.lastFlightId = flight.id
-    }
-    .onChange(of: flight.id) { _, newValue in
-      lastFlightInfo.lastFlightId = newValue
+      .listStyle(.plain)
+      .navigationTitle("Flight List")
+      .navigationBarItems(
+        trailing: Button(
+          hidePast ? "Show Past" : "Hide Past",
+          action: {
+            hidePast.toggle()
+          })
+      )
     }
   }
 }
 
 #Preview {
-  NavigationStack {
-    FlightDetails(
-      flight: FlightData.generateTestFlight(date: Date())
-    )
-  }
-  .environmentObject(FlightNavigationInfo())
+  FlightList(
+    flights: FlightData.generateTestFlights(date: Date()),
+    selectedFlight: .constant(1)
+  )
 }

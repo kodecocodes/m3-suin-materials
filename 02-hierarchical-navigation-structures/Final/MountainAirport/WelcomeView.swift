@@ -35,9 +35,10 @@ import SwiftUI
 struct WelcomeView: View {
   @StateObject var lastFlightInfo = FlightNavigationInfo()
   @StateObject var flightInfo = FlightData()
-  @State private var selectedView: FlightViewId?
+  @State private var selectedView: ButtonViewId?
+  @State private var selectedFlight: Int?
 
-  enum FlightViewId: CaseIterable {
+  enum ButtonViewId: CaseIterable {
     case showFlightStatus
     case showLastFlight
   }
@@ -69,7 +70,7 @@ struct WelcomeView: View {
   }
 
   struct ViewButton: Identifiable {
-    var id: FlightViewId
+    var id: ButtonViewId
     var title: String
     var subtitle: String
   }
@@ -88,10 +89,13 @@ struct WelcomeView: View {
       // 3
       .listStyle(.plain)
       .navigationTitle("Mountain Airport")
-    } detail: {
+    } content: {
       switch selectedView {
       case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.flights)
+        FlightList(
+          flights: flightInfo.flights,
+          selectedFlight: $selectedFlight
+        )
       case .showLastFlight:
         if
           let flightId = lastFlightInfo.lastFlightId,
@@ -101,8 +105,13 @@ struct WelcomeView: View {
       default:
         Text("Please select an option from the sidebar")
       }
+    } detail: {
+    if let flightId = selectedFlight,
+       let flight = FlightData().getFlightById(flightId) {
+      FlightDetails(flight: flight)
     }
-    .environmentObject(lastFlightInfo)
+  }
+  .environmentObject(lastFlightInfo)
   }
 }
 
