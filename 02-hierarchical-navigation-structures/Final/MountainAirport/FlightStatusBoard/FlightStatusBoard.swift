@@ -36,7 +36,6 @@ struct FlightStatusBoard: View {
   var flights: [FlightInformation]
   var flightToShow: FlightInformation?
   @State private var hidePast = false
-  @State private var path: [FlightInformation] = []
 
   var shownFlights: [FlightInformation] {
     hidePast ?
@@ -45,12 +44,10 @@ struct FlightStatusBoard: View {
   }
 
   var body: some View {
-    NavigationStack(path: $path) {
+    NavigationStack {
       List(shownFlights) { flight in
-        // 1
         NavigationLink(flight.statusBoardName, value: flight)
       }
-      // 2
       .navigationDestination(
         // 3
         for: FlightInformation.self,
@@ -70,14 +67,11 @@ struct FlightStatusBoard: View {
       )
       Spacer()
     }
-    .onAppear {
-      if let flight = flightToShow {
-        path.append(flight)
-      }
-    }
   }
 }
 
 #Preview {
-  FlightStatusBoard(flights: FlightData.generateTestFlights(date: Date()))
+  FlightStatusBoard(
+    flights: FlightData.generateTestFlights(date: Date())
+  )
 }

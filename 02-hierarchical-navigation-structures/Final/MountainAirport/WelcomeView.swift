@@ -99,10 +99,7 @@ struct WelcomeView: View {
         if
           let flightId = lastFlightInfo.lastFlightId,
           let flight = flightInfo.getFlightById(flightId) {
-          FlightStatusBoard(
-            flights: flightInfo.getDaysFlights(Date()),
-            flightToShow: flight
-          )
+          FlightDetails(flight: flight)
         }
       // 3
       default:
