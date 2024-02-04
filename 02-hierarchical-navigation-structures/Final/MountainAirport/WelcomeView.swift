@@ -33,63 +33,79 @@
 import SwiftUI
 
 struct WelcomeView: View {
+  @StateObject var lastFlightInfo = FlightNavigationInfo()
   @StateObject var flightInfo = FlightData()
-  @State private var hidePast = false
+  @State private var selectedView: FlightViewId?
 
-  var shownFlights: [FlightInformation] {
-    hidePast ?
-    flightInfo.flights.filter { $0.localTime >= Date() } :
-    flightInfo.flights
+  enum FlightViewId: CaseIterable {
+    case showFlightStatus
+    case showLastFlight
+  }
+
+  var sidebarButtons: [ViewButton] {
+    var buttons: [ViewButton] = []
+
+    buttons.append(
+      ViewButton(
+        id: .showFlightStatus,
+        title: "Flight Status",
+        subtitle: "Departure and arrival information"
+      )
+    )
+
+    if
+      let flightId = lastFlightInfo.lastFlightId,
+      let flight = flightInfo.getFlightById(flightId) {
+      buttons.append(
+        ViewButton(
+          id: .showLastFlight,
+          title: "\(flight.flightName)",
+          subtitle: "The Last Flight You Viewed"
+        )
+      )
+    }
+
+    return buttons
+  }
+
+  struct ViewButton: Identifiable {
+    var id: FlightViewId
+    var title: String
+    var subtitle: String
   }
 
   var body: some View {
-    NavigationStack {
-      ZStack(alignment: .topLeading) {
-        // Background
-        Image("welcome-background")
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: 375, height: 130)
-          .clipped()
-        // Title
-        VStack {
-          Text("Mountain Airport")
-            .font(.system(size: 28.0, weight: .bold))
-          Text("Flight Status")
-        }
-        .foregroundColor(.white)
-        .padding()
+    // 1
+    NavigationSplitView {
+      List(sidebarButtons, selection: $selectedView) { button in
+        // 2
+        WelcomeButtonView(
+          title: button.title,
+          subTitle: button.subtitle
+        )
+        .listRowSeparator(.hidden)
       }
-      .font(.title)
-      List(shownFlights) { flight in
-        // 1
-        NavigationLink(flight.statusBoardName, value: flight)
-      }
-      // 2
-      .navigationDestination(
-        // 3
-        for: FlightInformation.self,
-        // 4
-        destination: { flight in
-          FlightDetails(flight: flight)
-        }
-      )
+      // 3
       .listStyle(.plain)
       .navigationTitle("Mountain Airport")
-      .navigationBarItems(
-        trailing: Button(
-          hidePast ? "Show Past" : "Hide Past",
-          action: {
-            hidePast.toggle()
-          })
-      )
-      Spacer()
+    } detail: {
+      switch selectedView {
+      case .showFlightStatus:
+        FlightStatusBoard(flights: flightInfo.flights)
+      case .showLastFlight:
+        if
+          let flightId = lastFlightInfo.lastFlightId,
+          let flight = flightInfo.getFlightById(flightId) {
+          FlightDetails(flight: flight)
+        }
+      default:
+        Text("Please select an option from the sidebar")
+      }
     }
+    .environmentObject(lastFlightInfo)
   }
 }
 
-struct ContentView_Previews: PreviewProvider {
-  static var previews: some View {
-    WelcomeView()
-  }
+#Preview {
+  WelcomeView()
 }

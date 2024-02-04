@@ -60,12 +60,10 @@ struct FlightDetails: View {
   }
 }
 
-struct FlightDetails_Previews: PreviewProvider {
-  static var previews: some View {
-    NavigationStack {
-      FlightDetails(
-        flight: FlightData.generateTestFlight(date: Date())
-      )
-    }
+#Preview {
+  NavigationStack {
+    FlightDetails(
+      flight: FlightData.generateTestFlight(date: Date())
+    )
   }
 }

@@ -1,4 +1,4 @@
-/// Copyright (c) 2023 Kodeco Inc.
+/// Copyright (c) 2024 Kodeco Inc.
 ///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
@@ -32,32 +32,46 @@
 
 import SwiftUI
 
-struct WelcomeView: View {
-  @StateObject var flightInfo = FlightData()
+struct FlightStatusBoard: View {
+  var flights: [FlightInformation]
+  @State private var hidePast = false
+
+  var shownFlights: [FlightInformation] {
+    hidePast ?
+    flights.filter { $0.localTime >= Date() } :
+    flights
+  }
 
   var body: some View {
-    ZStack(alignment: .topLeading) {
-      // Background
-      Image("welcome-background")
-        .resizable()
-        .aspectRatio(contentMode: .fill)
-        .frame(width: 375, height: 130)
-        .clipped()
-      // Title
-      VStack {
-        Text("Mountain Airport")
-          .font(.system(size: 28.0, weight: .bold))
-          .foregroundStyle(.white)
-        Text("Flight Status")
-          .foregroundColor(.white)
-          .padding()
-          .font(.title)
-        Spacer()
+    NavigationStack {
+      List(shownFlights) { flight in
+        // 1
+        NavigationLink(flight.statusBoardName, value: flight)
       }
+      // 2
+      .navigationDestination(
+        // 3
+        for: FlightInformation.self,
+        // 4
+        destination: { flight in
+          FlightDetails(flight: flight)
+        }
+      )
+      .listStyle(.plain)
+      .navigationTitle("Flight Status Board")
+      .navigationBarItems(
+        trailing: Button(
+          hidePast ? "Show Past" : "Hide Past",
+          action: {
+            hidePast.toggle()
+          })
+      )
+      Spacer()
     }
   }
 }
 
 #Preview {
-  WelcomeView()
+  FlightStatusBoard(flights: FlightData.generateTestFlights(date: Date()))
+    .environmentObject(FlightNavigationInfo())
 }

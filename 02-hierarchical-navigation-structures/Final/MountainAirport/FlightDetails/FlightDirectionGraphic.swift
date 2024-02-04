@@ -47,11 +47,9 @@ struct FlightDirectionGraphic: View {
   }
 }
 
-struct FlightDirectionGraphic_Previews: PreviewProvider {
-  static var previews: some View {
-    Group {
-      FlightDirectionGraphic(direction: .arrival)
-      FlightDirectionGraphic(direction: .departure)
-    }.frame(width: 50, height: 50)
-  }
+#Preview {
+  Group {
+    FlightDirectionGraphic(direction: .arrival)
+    FlightDirectionGraphic(direction: .departure)
+  }.frame(width: 50, height: 50)
 }
