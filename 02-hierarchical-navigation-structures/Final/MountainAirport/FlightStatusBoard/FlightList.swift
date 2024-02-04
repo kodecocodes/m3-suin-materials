@@ -34,6 +34,7 @@ import SwiftUI
 
 struct FlightList: View {
   var flights: [FlightInformation]
+  var flightToShow: FlightInformation?
   @State private var hidePast = false
   @Binding var selectedFlight: Int?
 
@@ -57,6 +58,11 @@ struct FlightList: View {
             hidePast.toggle()
           })
       )
+    }
+    .onAppear {
+      if let flightId = flightToShow {
+        selectedFlight = flightId.id
+      }
     }
   }
 }
