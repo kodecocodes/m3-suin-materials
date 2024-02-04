@@ -52,9 +52,9 @@ struct WelcomeButtonView: View {
   }
 }
 
+
 #Preview {
   WelcomeButtonView(
     title: "Flight Status",
     subTitle: "Departure and Arrival Information"
-  )
-}
+  )}

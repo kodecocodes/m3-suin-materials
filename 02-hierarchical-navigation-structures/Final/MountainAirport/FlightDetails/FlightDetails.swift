@@ -61,9 +61,6 @@ struct FlightDetails: View {
     .onAppear {
       lastFlightInfo.lastFlightId = flight.id
     }
-    .onChange(of: flight.id) { _, newValue in
-      lastFlightInfo.lastFlightId = newValue
-    }
   }
 }
 
@@ -72,6 +69,6 @@ struct FlightDetails: View {
     FlightDetails(
       flight: FlightData.generateTestFlight(date: Date())
     )
+    .environmentObject(FlightNavigationInfo())
   }
-  .environmentObject(FlightNavigationInfo())
 }
