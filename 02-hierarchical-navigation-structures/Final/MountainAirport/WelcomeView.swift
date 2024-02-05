@@ -37,6 +37,8 @@ struct WelcomeView: View {
   @StateObject var lastFlightInfo = FlightNavigationInfo()
   @StateObject var flightInfo = FlightData()
   @State private var selectedView: ButtonViewId?
+  @State private var selectedFlight: Int?
+
 
   enum ButtonViewId: CaseIterable {
     case showFlightStatus
@@ -89,12 +91,15 @@ struct WelcomeView: View {
       // 3
       .listStyle(.plain)
       .navigationTitle("Mountain Airport")
-    } detail: {
+    } content: {
       // 1
       switch selectedView {
       // 2
       case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.flights)
+        FlightList(
+          flights: flightInfo.flights,
+          selectedFlight: $selectedFlight
+        )
       case .showLastFlight:
         if
           let flightId = lastFlightInfo.lastFlightId,
@@ -104,6 +109,11 @@ struct WelcomeView: View {
       // 3
       default:
         Text("Please select an option from the sidebar")
+      }
+    } detail: {
+      if let flightId = selectedFlight,
+         let flight = FlightData().getFlightById(flightId) {
+        FlightDetails(flight: flight)
       }
     }
     .environmentObject(lastFlightInfo)
