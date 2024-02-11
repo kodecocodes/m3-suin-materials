@@ -67,6 +67,7 @@ struct FlightStatusBoard: View {
       }
       .badge(shownFlights.filter { $0.direction == .arrival }.count)
       .tag(0)
+      
       FlightList(flights: shownFlights)
       .navigationTitle("All Flights")
       .tabItem {
@@ -76,6 +77,7 @@ struct FlightStatusBoard: View {
       }
       .badge(shortDateString)
       .tag(1)
+      
       FlightList(
         flights: shownFlights.filter { $0.direction == .departure }
       )
