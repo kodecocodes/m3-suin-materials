@@ -32,81 +32,51 @@
 
 import SwiftUI
 
-
-struct WelcomeView: View {
-  @StateObject var lastFlightInfo = FlightNavigationInfo()
-  @StateObject var flightInfo = FlightData()
-  @State private var selectedView: ButtonViewId?
-
-  enum ButtonViewId: CaseIterable {
-    case showFlightStatus
-    case showLastFlight
-  }
-
-  struct ViewButton: Identifiable {
-    var id: ButtonViewId
-    var title: String
-    var subtitle: String
-  }
-
-  var sidebarButtons: [ViewButton] {
-    var buttons: [ViewButton] = []
-
-    buttons.append(
-      ViewButton(
-        id: .showFlightStatus,
-        title: "Flight Status",
-        subtitle: "Departure and arrival information"
-      )
-    )
-
-    if
-      let flightId = lastFlightInfo.lastFlightId,
-      let flight = flightInfo.getFlightById(flightId) {
-      buttons.append(
-        ViewButton(
-          id: .showLastFlight,
-          title: "\(flight.flightName)",
-          subtitle: "The Last Flight You Viewed"
-        )
-      )
+class PurchasedFlights: ObservableObject {
+  @Published var purchasedFlightIds: [Int] = []
+  @AppStorage("PurchasedFlight") var purchasedFlightStorage = "" {
+    didSet {
+      purchasedFlightIds = getPurchasedFlights()
     }
-
-    return buttons
   }
 
-  var body: some View {
-    NavigationSplitView {
-      List(sidebarButtons, selection: $selectedView) { button in
-        WelcomeButtonView(
-          title: button.title,
-          subTitle: button.subtitle
-        )
-        .listRowSeparator(.hidden)
-      }
-      .listStyle(.plain)
-      .navigationTitle("Mountain Airport")
-    } detail: {
-      // 1
-      switch selectedView {
-      // 2
-      case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.getDaysFlights(Date()))
-      case .showLastFlight:
-        if
-          let flightId = lastFlightInfo.lastFlightId,
-          let flight = flightInfo.getFlightById(flightId) {
-          FlightDetails(flight: flight)
-        }
-      // 3
-      default:
-        Text("Please select an option from the sidebar")
-      }
+  init() {
+    purchasedFlightIds = getPurchasedFlights()
+  }
+
+  init(flightId: Int) {
+    purchasedFlightIds = [flightId]
+  }
+
+  init(flightIds: [Int]) {
+    purchasedFlightIds = flightIds
+  }
+
+  func isFlightPurchased(_ flight: FlightInformation) -> Bool {
+    let flightIds = purchasedFlightStorage.split(separator: ",").compactMap { Int($0) }
+    let matching = flightIds.filter { $0 == flight.id }
+    return matching.isEmpty == false
+  }
+
+  func purchaseFlight(_ flight: FlightInformation) {
+    if !isFlightPurchased(flight) {
+      print("Saving flight: \(flight.id)")
+      var flights = purchasedFlightStorage.split(separator: ",").compactMap { Int($0) }
+      flights.append(flight.id)
+      purchasedFlightStorage = flights.map { String($0) }.joined(separator: ",")
+    }  }
+
+  func removePurchasedFlight(_ flight: FlightInformation) {
+    if isFlightPurchased(flight) {
+      print("Removing saved flight: \(flight.id)")
+      let flights = purchasedFlightStorage.split(separator: ",").compactMap { Int($0) }
+      let newFlights = flights.filter { $0 != flight.id }
+      purchasedFlightStorage = newFlights.map { String($0) }.joined(separator: ",")
     }
-    .environmentObject(lastFlightInfo)
   }
-}
 
-#Preview {
-  WelcomeView()
+  func getPurchasedFlights() -> [Int] {
+    let flightIds = purchasedFlightStorage.split(separator: ",").compactMap { Int($0) }
+    return flightIds
+  }
 }

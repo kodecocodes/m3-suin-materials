@@ -32,81 +32,24 @@
 
 import SwiftUI
 
-
-struct WelcomeView: View {
-  @StateObject var lastFlightInfo = FlightNavigationInfo()
-  @StateObject var flightInfo = FlightData()
-  @State private var selectedView: ButtonViewId?
-
-  enum ButtonViewId: CaseIterable {
-    case showFlightStatus
-    case showLastFlight
-  }
-
-  struct ViewButton: Identifiable {
-    var id: ButtonViewId
-    var title: String
-    var subtitle: String
-  }
-
-  var sidebarButtons: [ViewButton] {
-    var buttons: [ViewButton] = []
-
-    buttons.append(
-      ViewButton(
-        id: .showFlightStatus,
-        title: "Flight Status",
-        subtitle: "Departure and arrival information"
-      )
-    )
-
-    if
-      let flightId = lastFlightInfo.lastFlightId,
-      let flight = flightInfo.getFlightById(flightId) {
-      buttons.append(
-        ViewButton(
-          id: .showLastFlight,
-          title: "\(flight.flightName)",
-          subtitle: "The Last Flight You Viewed"
-        )
-      )
-    }
-
-    return buttons
-  }
+struct FlightDirectionGraphic: View {
+  var direction: FlightDirection
 
   var body: some View {
-    NavigationSplitView {
-      List(sidebarButtons, selection: $selectedView) { button in
-        WelcomeButtonView(
-          title: button.title,
-          subTitle: button.subtitle
-        )
-        .listRowSeparator(.hidden)
-      }
-      .listStyle(.plain)
-      .navigationTitle("Mountain Airport")
-    } detail: {
-      // 1
-      switch selectedView {
-      // 2
-      case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.getDaysFlights(Date()))
-      case .showLastFlight:
-        if
-          let flightId = lastFlightInfo.lastFlightId,
-          let flight = flightInfo.getFlightById(flightId) {
-          FlightDetails(flight: flight)
-        }
-      // 3
-      default:
-        Text("Please select an option from the sidebar")
-      }
+    ZStack {
+      RoundedRectangle(cornerRadius: 10.0)
+        .foregroundColor(Color(red: 0.9, green: 0.4, blue: 0.69))
+      Image(systemName: "airplane")
+        .resizable()
+        .padding(5)
+        .rotationEffect(.degrees(direction == .arrival ? 45.0 : -45.0))
     }
-    .environmentObject(lastFlightInfo)
   }
 }
 
 #Preview {
-  WelcomeView()
+  Group {
+    FlightDirectionGraphic(direction: .arrival)
+    FlightDirectionGraphic(direction: .departure)
+  }.frame(width: 50, height: 50)
 }

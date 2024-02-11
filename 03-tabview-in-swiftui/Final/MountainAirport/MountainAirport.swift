@@ -32,81 +32,11 @@
 
 import SwiftUI
 
-
-struct WelcomeView: View {
-  @StateObject var lastFlightInfo = FlightNavigationInfo()
-  @StateObject var flightInfo = FlightData()
-  @State private var selectedView: ButtonViewId?
-
-  enum ButtonViewId: CaseIterable {
-    case showFlightStatus
-    case showLastFlight
-  }
-
-  struct ViewButton: Identifiable {
-    var id: ButtonViewId
-    var title: String
-    var subtitle: String
-  }
-
-  var sidebarButtons: [ViewButton] {
-    var buttons: [ViewButton] = []
-
-    buttons.append(
-      ViewButton(
-        id: .showFlightStatus,
-        title: "Flight Status",
-        subtitle: "Departure and arrival information"
-      )
-    )
-
-    if
-      let flightId = lastFlightInfo.lastFlightId,
-      let flight = flightInfo.getFlightById(flightId) {
-      buttons.append(
-        ViewButton(
-          id: .showLastFlight,
-          title: "\(flight.flightName)",
-          subtitle: "The Last Flight You Viewed"
-        )
-      )
+@main
+struct MountainAirport: App {
+  var body: some Scene {
+    WindowGroup {
+      WelcomeView()
     }
-
-    return buttons
   }
-
-  var body: some View {
-    NavigationSplitView {
-      List(sidebarButtons, selection: $selectedView) { button in
-        WelcomeButtonView(
-          title: button.title,
-          subTitle: button.subtitle
-        )
-        .listRowSeparator(.hidden)
-      }
-      .listStyle(.plain)
-      .navigationTitle("Mountain Airport")
-    } detail: {
-      // 1
-      switch selectedView {
-      // 2
-      case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.getDaysFlights(Date()))
-      case .showLastFlight:
-        if
-          let flightId = lastFlightInfo.lastFlightId,
-          let flight = flightInfo.getFlightById(flightId) {
-          FlightDetails(flight: flight)
-        }
-      // 3
-      default:
-        Text("Please select an option from the sidebar")
-      }
-    }
-    .environmentObject(lastFlightInfo)
-  }
-}
-
-#Preview {
-  WelcomeView()
 }

@@ -1,4 +1,4 @@
-/// Copyright (c) 2023 Kodeco Inc.
+/// Copyright (c) 2024 Kodeco Inc.
 ///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
@@ -32,81 +32,72 @@
 
 import SwiftUI
 
+struct FlightStatusBoard: View {
+  var flights: [FlightInformation]
+  @State private var hidePast = false
+  @AppStorage("FlightStatusCurrentTab") var selectedTab = 1
 
-struct WelcomeView: View {
-  @StateObject var lastFlightInfo = FlightNavigationInfo()
-  @StateObject var flightInfo = FlightData()
-  @State private var selectedView: ButtonViewId?
-
-  enum ButtonViewId: CaseIterable {
-    case showFlightStatus
-    case showLastFlight
+  var shownFlights: [FlightInformation] {
+    hidePast ?
+    flights.filter { $0.localTime >= Date() } :
+    flights
   }
 
-  struct ViewButton: Identifiable {
-    var id: ButtonViewId
-    var title: String
-    var subtitle: String
-  }
-
-  var sidebarButtons: [ViewButton] {
-    var buttons: [ViewButton] = []
-
-    buttons.append(
-      ViewButton(
-        id: .showFlightStatus,
-        title: "Flight Status",
-        subtitle: "Departure and arrival information"
-      )
-    )
-
-    if
-      let flightId = lastFlightInfo.lastFlightId,
-      let flight = flightInfo.getFlightById(flightId) {
-      buttons.append(
-        ViewButton(
-          id: .showLastFlight,
-          title: "\(flight.flightName)",
-          subtitle: "The Last Flight You Viewed"
-        )
-      )
-    }
-
-    return buttons
+  var shortDateString: String {
+    let dateF = DateFormatter()
+    dateF.timeStyle = .none
+    dateF.dateFormat = "MMM d"
+    return dateF.string(from: Date())
   }
 
   var body: some View {
-    NavigationSplitView {
-      List(sidebarButtons, selection: $selectedView) { button in
-        WelcomeButtonView(
-          title: button.title,
-          subTitle: button.subtitle
-        )
-        .listRowSeparator(.hidden)
-      }
-      .listStyle(.plain)
-      .navigationTitle("Mountain Airport")
-    } detail: {
-      // 1
-      switch selectedView {
+    // 1
+    TabView(selection: $selectedTab) {
       // 2
-      case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.getDaysFlights(Date()))
-      case .showLastFlight:
-        if
-          let flightId = lastFlightInfo.lastFlightId,
-          let flight = flightInfo.getFlightById(flightId) {
-          FlightDetails(flight: flight)
-        }
+      FlightList(
+        flights: shownFlights.filter { $0.direction == .arrival }
+      )
+      .navigationTitle("Arrivals")
       // 3
-      default:
-        Text("Please select an option from the sidebar")
+      .tabItem {
+        // 4
+        Image("descending-airplane")
+          .resizable()
+        Text("Arrivals")
       }
+      .badge(shownFlights.filter { $0.direction == .arrival }.count)
+      .tag(0)
+      FlightList(flights: shownFlights)
+      .navigationTitle("All Flights")
+      .tabItem {
+        Image(systemName: "airplane")
+          .resizable()
+        Text("All")
+      }
+      .badge(shortDateString)
+      .tag(1)
+      FlightList(
+        flights: shownFlights.filter { $0.direction == .departure }
+      )
+      .navigationTitle("Departures")
+      .tabItem {
+        Image("ascending-airplane")
+        Text("Departures")
+      }
+      .badge(shownFlights.filter { $0.direction == .departure }.count)
+      .tag(2)
     }
-    .environmentObject(lastFlightInfo)
+    .tabViewStyle(.page)
+    .indexViewStyle(.page(backgroundDisplayMode: .always))
+    .navigationTitle("Today's Flight Status")
+    .navigationBarItems(
+      trailing: Toggle("Hide Past", isOn: $hidePast)
+    )
   }
 }
 
 #Preview {
-  WelcomeView()
+  FlightStatusBoard(
+    flights: FlightData.generateTestFlights(date: Date())
+  )
 }

@@ -32,81 +32,43 @@
 
 import SwiftUI
 
-
-struct WelcomeView: View {
-  @StateObject var lastFlightInfo = FlightNavigationInfo()
-  @StateObject var flightInfo = FlightData()
-  @State private var selectedView: ButtonViewId?
-
-  enum ButtonViewId: CaseIterable {
-    case showFlightStatus
-    case showLastFlight
-  }
-
-  struct ViewButton: Identifiable {
-    var id: ButtonViewId
-    var title: String
-    var subtitle: String
-  }
-
-  var sidebarButtons: [ViewButton] {
-    var buttons: [ViewButton] = []
-
-    buttons.append(
-      ViewButton(
-        id: .showFlightStatus,
-        title: "Flight Status",
-        subtitle: "Departure and arrival information"
-      )
-    )
-
-    if
-      let flightId = lastFlightInfo.lastFlightId,
-      let flight = flightInfo.getFlightById(flightId) {
-      buttons.append(
-        ViewButton(
-          id: .showLastFlight,
-          title: "\(flight.flightName)",
-          subtitle: "The Last Flight You Viewed"
-        )
-      )
-    }
-
-    return buttons
-  }
+struct FlightDetails: View {
+  var flight: FlightInformation
+  @EnvironmentObject var lastFlightInfo: FlightNavigationInfo
 
   var body: some View {
-    NavigationSplitView {
-      List(sidebarButtons, selection: $selectedView) { button in
-        WelcomeButtonView(
-          title: button.title,
-          subTitle: button.subtitle
-        )
-        .listRowSeparator(.hidden)
-      }
-      .listStyle(.plain)
-      .navigationTitle("Mountain Airport")
-    } detail: {
-      // 1
-      switch selectedView {
-      // 2
-      case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.getDaysFlights(Date()))
-      case .showLastFlight:
-        if
-          let flightId = lastFlightInfo.lastFlightId,
-          let flight = flightInfo.getFlightById(flightId) {
-          FlightDetails(flight: flight)
+    ZStack {
+      Image("background-view")
+        .resizable()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      VStack(alignment: .leading) {
+        HStack {
+          FlightDirectionGraphic(direction: flight.direction)
+            .frame(width: 40, height: 40)
+          VStack(alignment: .leading) {
+            Text("\(flight.dirString) \(flight.otherAirport)")
+            Text(flight.flightStatus)
+              .font(.subheadline)
+          }.font(.title2)
         }
-      // 3
-      default:
-        Text("Please select an option from the sidebar")
+        Spacer()
       }
+      .foregroundColor(.white)
+      .padding()
+      .navigationTitle(flight.statusBoardName)
+      .navigationBarTitleDisplayMode(.inline)
     }
-    .environmentObject(lastFlightInfo)
+    .onAppear {
+      lastFlightInfo.lastFlightId = flight.id
+    }
   }
 }
 
 #Preview {
-  WelcomeView()
+  NavigationStack {
+    FlightDetails(
+      flight: FlightData.generateTestFlight(date: Date())
+    )
+    .environmentObject(FlightNavigationInfo())
+  }
 }

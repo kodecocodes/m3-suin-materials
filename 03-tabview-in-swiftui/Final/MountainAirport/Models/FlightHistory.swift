@@ -32,81 +32,69 @@
 
 import SwiftUI
 
+class FlightHistory: NSObject {
+  var day: Int
+  var flightId: Int
+  var date: Date
+  var direction: FlightDirection
+  var status: FlightStatus
+  var scheduledTime: Date
+  var actualTime: Date?
 
-struct WelcomeView: View {
-  @StateObject var lastFlightInfo = FlightNavigationInfo()
-  @StateObject var flightInfo = FlightData()
-  @State private var selectedView: ButtonViewId?
-
-  enum ButtonViewId: CaseIterable {
-    case showFlightStatus
-    case showLastFlight
+  var shortDate: String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMM d"
+    return formatter.string(from: date)
   }
 
-  struct ViewButton: Identifiable {
-    var id: ButtonViewId
-    var title: String
-    var subtitle: String
+  var timeDifference: Int {
+    guard let actual = actualTime else { return 60 }
+    let diff = Calendar.current.dateComponents([.minute], from: scheduledTime, to: actual)
+    // swiftlint:disable:next force_unwrapping
+    return diff.minute!
   }
 
-  var sidebarButtons: [ViewButton] {
-    var buttons: [ViewButton] = []
-
-    buttons.append(
-      ViewButton(
-        id: .showFlightStatus,
-        title: "Flight Status",
-        subtitle: "Departure and arrival information"
-      )
-    )
-
-    if
-      let flightId = lastFlightInfo.lastFlightId,
-      let flight = flightInfo.getFlightById(flightId) {
-      buttons.append(
-        ViewButton(
-          id: .showLastFlight,
-          title: "\(flight.flightName)",
-          subtitle: "The Last Flight You Viewed"
-        )
-      )
+  var flightDelayDescription: String {
+    if status == .canceled {
+      return "Canceled"
     }
 
-    return buttons
-  }
-
-  var body: some View {
-    NavigationSplitView {
-      List(sidebarButtons, selection: $selectedView) { button in
-        WelcomeButtonView(
-          title: button.title,
-          subTitle: button.subtitle
-        )
-        .listRowSeparator(.hidden)
-      }
-      .listStyle(.plain)
-      .navigationTitle("Mountain Airport")
-    } detail: {
-      // 1
-      switch selectedView {
-      // 2
-      case .showFlightStatus:
-        FlightStatusBoard(flights: flightInfo.getDaysFlights(Date()))
-      case .showLastFlight:
-        if
-          let flightId = lastFlightInfo.lastFlightId,
-          let flight = flightInfo.getFlightById(flightId) {
-          FlightDetails(flight: flight)
-        }
-      // 3
-      default:
-        Text("Please select an option from the sidebar")
-      }
+    if timeDifference < 0 {
+      return "Early by \(-timeDifference) minutes."
+    } else if timeDifference == 0 {
+      return "On time"
+    } else {
+      return "Late by \(timeDifference) minutes."
     }
-    .environmentObject(lastFlightInfo)
   }
-}
 
-#Preview {
-  WelcomeView()
+  var delayColor: Color {
+    if status == .canceled {
+      return Color.init(red: 0.5, green: 0, blue: 0)
+    }
+
+    if timeDifference <= 0 {
+      return Color.green
+    }
+
+    if timeDifference <= 15 {
+      return Color.yellow
+    }
+
+    return Color.red
+  }
+
+  func calcOffset(_ width: CGFloat) -> CGFloat {
+    CGFloat(CGFloat(day - 1) * width)
+  }
+
+  init(_ day: Int, id: Int, date: Date, direction: FlightDirection, status: FlightStatus, scheduledTime: Date, actualTime: Date?) {
+    self.day = day
+    self.flightId = id
+    self.date = date
+    self.direction = direction
+    self.status = status
+    self.scheduledTime = scheduledTime
+    self.actualTime = actualTime
+  }
 }
