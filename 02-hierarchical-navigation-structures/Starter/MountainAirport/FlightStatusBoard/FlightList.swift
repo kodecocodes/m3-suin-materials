@@ -46,6 +46,7 @@ struct FlightList: View {
       }
       .listStyle(.plain)
       .navigationTitle("Flight List")
+      // swiftlint:disable trailing_closure
       .navigationBarItems(
         trailing: Button(
           hidePast ? "Show Past" : "Hide Past",
@@ -53,6 +54,7 @@ struct FlightList: View {
             hidePast.toggle()
           })
       )
+      // swiftlint:enable trailing_closure
     }
   }
 }

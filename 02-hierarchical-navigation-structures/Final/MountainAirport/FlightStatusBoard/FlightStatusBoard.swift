@@ -45,9 +45,11 @@ struct FlightStatusBoard: View {
 
   var body: some View {
     NavigationStack {
+      // swiftlint:disable trailing_closure
       List(shownFlights) { flight in
         NavigationLink(flight.statusBoardName, value: flight)
       }
+      // swiftlint:enable trailing_closure
       .navigationDestination(
         // 3
         for: FlightInformation.self,
@@ -58,12 +60,15 @@ struct FlightStatusBoard: View {
       )
       .listStyle(.plain)
       .navigationTitle("Flight Status Board")
+      // swiftlint:disable trailing_closure
       .navigationBarItems(
         trailing: Button(
           hidePast ? "Show Past" : "Hide Past",
           action: {
             hidePast.toggle()
-          })
+          }
+        )
+        // swiftlint:enable trailing_closure
       )
       Spacer()
     }

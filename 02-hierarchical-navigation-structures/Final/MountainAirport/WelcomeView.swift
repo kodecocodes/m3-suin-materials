@@ -112,7 +112,7 @@ struct WelcomeView: View {
       }
     } detail: {
       if let flightId = selectedFlight,
-         let flight = FlightData().getFlightById(flightId) {
+      let flight = FlightData().getFlightById(flightId) {
         FlightDetails(flight: flight)
       }
     }
