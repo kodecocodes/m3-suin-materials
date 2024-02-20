@@ -59,12 +59,14 @@ public struct SeededRandomGenerator: RandomNumberGenerator {
 
 class FlightData: ObservableObject {
   @Published var flights: [FlightInformation] = []
+  // swiftlint:disable force_unwrapping
   var canceledFlight: FlightInformation {
     flights.first { $0.status == .canceled }!
   }
   var departingOnTimeFlight: FlightInformation {
     flights.first { $0.status == .ontime && $0.direction == .departure }!
   }
+  // swiftlint:enable force_unwrapping
 
   // Seeded random numbers so the sample data is same each time
   var generator = SeededRandomGenerator(
