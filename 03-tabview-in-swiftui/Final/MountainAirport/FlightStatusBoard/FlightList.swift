@@ -33,10 +33,12 @@ struct FlightList: View {
   @State private var path: [FlightInformation] = []
 
   var body: some View {
+    // swiftlint:disable trailing_closure
     NavigationStack(path: $path) {
       List(flights, id: \.id) { flight in
         NavigationLink(flight.statusBoardName, value: flight)
       }
+      // swiftlint:enable trailing_closure
       .navigationDestination(
         for: FlightInformation.self,
         destination: { flight in

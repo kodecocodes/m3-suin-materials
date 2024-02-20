@@ -35,7 +35,8 @@ import SwiftUI
 struct FlightStatusBoard: View {
   var flights: [FlightInformation]
   @State private var hidePast = false
-  @AppStorage("FlightStatusCurrentTab") var selectedTab = 1
+  @AppStorage("FlightStatusCurrentTab")
+  var selectedTab = 1
 
   var shownFlights: [FlightInformation] {
     hidePast ?
@@ -67,7 +68,7 @@ struct FlightStatusBoard: View {
       }
       .badge(shownFlights.filter { $0.direction == .arrival }.count)
       .tag(0)
-      
+
       FlightList(flights: shownFlights)
       .navigationTitle("All Flights")
       .tabItem {
@@ -77,7 +78,7 @@ struct FlightStatusBoard: View {
       }
       .badge(shortDateString)
       .tag(1)
-      
+
       FlightList(
         flights: shownFlights.filter { $0.direction == .departure }
       )
