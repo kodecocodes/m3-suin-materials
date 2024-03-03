@@ -57,4 +57,5 @@ struct WelcomeButtonView: View {
   WelcomeButtonView(
     title: "Flight Status",
     subTitle: "Departure and Arrival Information"
-  )}
+  )
+}
