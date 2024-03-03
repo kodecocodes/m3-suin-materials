@@ -32,13 +32,11 @@
 
 import SwiftUI
 
-
 struct WelcomeView: View {
   @StateObject var lastFlightInfo = FlightNavigationInfo()
   @StateObject var flightInfo = FlightData()
   @State private var selectedView: ButtonViewId?
   @State private var selectedFlight: Int?
-
 
   enum ButtonViewId: CaseIterable {
     case showFlightStatus
